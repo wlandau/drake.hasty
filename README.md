@@ -27,6 +27,7 @@ Installation
 
 ``` r
 library(remotes)
+install_github("ropensci/drake")
 install_github("wlandau/drake.hasty")
 ```
 
@@ -79,7 +80,7 @@ config$hasty_build
 #>         envir = config$eval)
 #>     eval(expr = tidy_expr, envir = config$eval)
 #> }
-#> <bytecode: 0x561f6b55bef8>
+#> <bytecode: 0x564c5a0cb9d0>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -87,6 +88,10 @@ Finally, run the project. For the fastest execution, set `skip_imports` to `TRUE
 
 ``` r
 make(config = config)
+#> Warning: `drake` can indeed accept a custom scheduler function for the
+#> `parallelism` argument of `make()` but this is only for the sake of
+#> experimentation and graceful deprecation. Your own custom schedulers may
+#> cause surprising errors. Use at your own risk.
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -105,6 +110,10 @@ There is no caching or checking in hasty mode, so your targets are never up to d
 
 ``` r
 make(config = config)
+#> Warning: `drake` can indeed accept a custom scheduler function for the
+#> `parallelism` argument of `make()` but this is only for the sake of
+#> experimentation and graceful deprecation. Your own custom schedulers may
+#> cause surprising errors. Use at your own risk.
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -129,6 +138,10 @@ config$jobs <- 2
 options(clustermq.scheduler = "multicore")
 
 make(config = config)
+#> Warning: `drake` can indeed accept a custom scheduler function for the
+#> `parallelism` argument of `make()` but this is only for the sake of
+#> experimentation and graceful deprecation. Your own custom schedulers may
+#> cause surprising errors. Use at your own risk.
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -137,10 +150,10 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6307) ...
+#> Submitting 2 worker jobs (ID: 6316) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 19.7% CPU]; Worker: [avg 6.5% CPU, max 284.8 Mb]
+#> Master: [0.2s 18.4% CPU]; Worker: [avg 7.0% CPU, max 284.7 Mb]
 #> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```

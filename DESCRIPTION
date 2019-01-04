@@ -33,6 +33,8 @@ Suggests:
   testthat,
   utils,
   withr
+Remotes:
+  ropensci/drake
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
