@@ -1,4 +1,4 @@
 ^\.travis\.yml$
 ^README\.Rmd$
-^drake\.Rproj$
+^drake\.hasty\.Rproj$
 ^\.Rproj\.user$

@@ -33,5 +33,6 @@ Roxygen: list(markdown = TRUE)
 Suggests:
   clustermq,
   crayon,
-  testthat
+  testthat,
+  utils
 RoxygenNote: 6.1.1
