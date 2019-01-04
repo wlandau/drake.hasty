@@ -5,23 +5,8 @@
 #' @export
 #' @param config a `drake_config()` object
 #' @examples
-#' \dontrun{
-#' drake::test_with_dir("generates files", {
-#' library(drake)
-#' library(drake.hasty)
-#' load_mtcars_example()
-#' config <- drake_config(my_plan)
-#' # You can supply your own build function:
-#' config$hasty_build <- default_hasty_build
-#' config$hasty
-#' make(my_plan, parallelism = backend_hasty, jobs = 1)
-#' make(
-#' if (requireNamespace("clustermq")){
-#'   options(clustermq.scheduler = "multicore")
-#'   make(my_plan, parallelism = backend_hasty, jobs = 2)
-#' }
-#' })
-#' }
+#' # See <https://github.com/wlandau/drake.hasty/blob/master/README.md>
+#' # for examples.
 backend_hasty <- function(config) {
   warn_hasty(config)
   config$graph <- config$schedule
@@ -73,7 +58,7 @@ hasty_parallel <- function(config) {
     drake:::cmq_set_common_data(config)
     config$counter <- new.env(parent = emptyenv())
     config$counter$remaining <- config$queue$size()
-    drake:::hasty_master(config)
+    hasty_master(config)
   }
   invisible()
 }
@@ -82,7 +67,7 @@ hasty_master <- function(config) {
   on.exit(config$workers$finalize())
   while (config$counter$remaining > 0) {
     msg <- config$workers$receive_data()
-    drake:::conclude_hasty_build(msg = msg, config = config)
+    conclude_hasty_build(msg = msg, config = config)
     if (!identical(msg$token, "set_common_data_token")) {
       config$workers$send_common_data()
     } else if (!config$queue$empty()) {
@@ -103,7 +88,7 @@ hasty_send_target <- function(config) {
     return() # nocov
   }
   drake:::console_target(target = target, config = config)
-  deps <- cmq_deps_list(target = target, config = config)
+  deps <- drake:::cmq_deps_list(target = target, config = config)
   config$workers$send_call(
     expr = drake::remote_hasty_build(
       target = target,

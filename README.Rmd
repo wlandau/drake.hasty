@@ -14,7 +14,6 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 library(drake.hasty)
-load_mtcars_example()
 ```
 
 # Hasty mode for the drake R package
@@ -23,13 +22,16 @@ Hasty mode is accelerated execution with all of `drake`'s storage and reproducib
 
 ## Drawbacks
 
-- **DRAKE NO LONGER PROVIDES EVIDENCE THAT YOUR WORKFLOW IS TRUSTWORTHY OR REPRODUCIBLE. [THE CORE SCIENTIFIC CLAIMS](https://github.com/ropensci/drake#reproducibility-with-confidence) ARE NO LONGER VALID.**
-- There is no cache. You need to write code to store your own targets. The `hasty_build` argument to `make()` and the `default_hasty_build()` function may help you get started.
+1. **DRAKE NO LONGER PROVIDES EVIDENCE THAT YOUR WORKFLOW IS TRUSTWORTHY OR REPRODUCIBLE. [THE CORE SCIENTIFIC CLAIMS](https://github.com/ropensci/drake#reproducibility-with-confidence) ARE NO LONGER VALID.**
+2. There is no cache, so 
+    1. You need to write code to store your own targets (in your targets' commands or `config$hasty_build()`), and
+    2. `knitr`/`rmarkdown` reports with calls to `loadd()`/`readd()` will no longer work properly as pieces of the pipeline.
 
 ## Advantages
 
-- There is no overhead from storing and checking targets, so hasty mode runs much faster than `drake`'s standard modes.
-- `drake` still builds the correct targets in the correct order, waiting for dependencies to finish before advancing downstream.
+1. It's a sandbox. By supplying a `hasty_build` function to your `drake_config()` object, you can experiment with different ways to process targets.
+2. There is no overhead from storing and checking targets, so hasty mode runs much faster than `drake`'s standard modes.
+3. You still have scheduling and dependency management. `drake` still builds the correct targets in the correct order, waiting for dependencies to finish before advancing downstream.
 
 ## Installation
 
@@ -40,19 +42,26 @@ install_github("wlandau/drake.hasty")
 
 ## Usage
 
-First, create a `drake_config()` object from your workflow.
+We begin with a `drake` project.
 
-```{r introhasty}
+```{r beginhasty}
 library(drake.hasty)
-load_mtcars_example()
-config <- drake_config(my_plan, parallelism = backend_hasty)
+plan <- drake_plan(x = rnorm(100), y = mean(x), z = median(x))
+
+plan
+```
+
+Create a `drake_config()` object from your workflow.
+
+```{r introhasty, eval = FALSE}
+config <- drake_config(plan, parallelism = backend_hasty)
 ```
 
 You can increase speed even more with some lesser-known `drake_config()` options.
 
 ```{r hastyconfig}
 config <- drake_config(
-  my_plan,
+  plan,
   parallelism = backend_hasty,
   cache = storr::storr_environment(),
   skip_imports = TRUE,
@@ -83,11 +92,12 @@ make(config = config)
 
 If you have `clustermq` installed, you can use parallel computing.
 
-```{r hastyrun3, eval = FALSE}
-config$jobs <- 4
-make(config = config)
-```
+```{r hastyrun3}
+# Use 2 persistent workers.
+config$jobs <- 2
 
-```{r hastycleanup}
-unlink(c("report.Rmd", "report.md"))
+# See https://github.com/mschubert/clustermq for more options.
+options(clustermq.scheduler = "multicore")
+
+make(config = config)
 ```

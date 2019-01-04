@@ -2,26 +2,19 @@
 % Please edit documentation in R/hasty.R
 \name{backend_hasty}
 \alias{backend_hasty}
-\title{Build a target using "hasty" parallelism}
+\title{Hasty mode for the drake R package}
 \usage{
 backend_hasty(config)
 }
+\arguments{
+\item{config}{a \code{drake_config()} object}
+}
 \description{
-For internal use only
+Sacrifices reproducibility to gain speed.
+Targets are never cached and never up to date.
+Use at your own risk.
 }
 \examples{
-\dontrun{
-drake::test_with_dir("generates files", {
-library(drake)
-library(drake.hasty)
-load_mtcars_example()
-make(my_plan, parallelism = backend_hasty, jobs = 1)
-make(
-if (requireNamespace("clustermq")){
-  options(clustermq.scheduler = "multicore")
-  make(my_plan, parallelism = backend_hasty, jobs = 2)
+# See <https://github.com/wlandau/drake.hasty/blob/master/README.md>
+# for examples.
 }
-})
-}
-}
-\keyword{internal}

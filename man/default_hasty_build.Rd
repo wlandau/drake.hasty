@@ -6,7 +6,11 @@
 \usage{
 default_hasty_build(target, config)
 }
+\arguments{
+\item{target}{character, name of the target to build}
+
+\item{config}{a \code{drake_config()} object}
+}
 \description{
 For internal use only
 }
-\keyword{internal}
