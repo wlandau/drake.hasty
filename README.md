@@ -80,7 +80,7 @@ config$hasty_build
 #>         envir = config$eval)
 #>     eval(expr = tidy_expr, envir = config$eval)
 #> }
-#> <bytecode: 0x5599fbe4b8d0>
+#> <bytecode: 0x55da9ad4f800>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -150,10 +150,10 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 7882) ...
+#> Submitting 2 worker jobs (ID: 6358) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 20.0% CPU]; Worker: [avg 6.6% CPU, max 284.7 Mb]
+#> Master: [0.2s 19.1% CPU]; Worker: [avg 7.7% CPU, max 284.7 Mb]
 #> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
