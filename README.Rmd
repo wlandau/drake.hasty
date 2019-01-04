@@ -2,6 +2,7 @@
 output: github_document
 ---
 
+[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 [![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -29,7 +30,7 @@ Hasty mode is accelerated execution with all of `drake`'s storage and reproducib
 
 ## Advantages
 
-1. It's a sandbox. By supplying a `hasty_build` function to your `drake_config()` object, you can experiment with different ways to process targets.
+1. Hasty mode is a sandbox. By supplying a `hasty_build` function to your `drake_config()` object, you can experiment with different ways to process targets.
 2. There is no overhead from storing and checking targets, so hasty mode runs much faster than `drake`'s standard modes.
 3. You still have scheduling and dependency management. `drake` still builds the correct targets in the correct order, waiting for dependencies to finish before advancing downstream.
 

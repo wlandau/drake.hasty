@@ -1,5 +1,5 @@
 
-[![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty)
+[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges) [![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 Hasty mode for the drake R package
@@ -18,7 +18,7 @@ Drawbacks
 Advantages
 ----------
 
-1.  It's a sandbox. By supplying a `hasty_build` function to your `drake_config()` object, you can experiment with different ways to process targets.
+1.  Hasty mode is a sandbox. By supplying a `hasty_build` function to your `drake_config()` object, you can experiment with different ways to process targets.
 2.  There is no overhead from storing and checking targets, so hasty mode runs much faster than `drake`'s standard modes.
 3.  You still have scheduling and dependency management. `drake` still builds the correct targets in the correct order, waiting for dependencies to finish before advancing downstream.
 
@@ -79,7 +79,7 @@ config$hasty_build
 #>         envir = config$eval)
 #>     eval(expr = tidy_expr, envir = config$eval)
 #> }
-#> <bytecode: 0x556b733ab938>
+#> <bytecode: 0x55a9d5b2be88>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -137,10 +137,10 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6234) ...
+#> Submitting 2 worker jobs (ID: 7491) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 18.6% CPU]; Worker: [avg 6.5% CPU, max 284.8 Mb]
+#> Master: [0.2s 16.4% CPU]; Worker: [avg 6.5% CPU, max 284.8 Mb]
 #> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
