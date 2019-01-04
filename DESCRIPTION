@@ -31,7 +31,8 @@ Suggests:
   clustermq,
   crayon,
   testthat,
-  utils
+  utils,
+  withr
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
