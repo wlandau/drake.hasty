@@ -89,7 +89,7 @@ hasty_send_target <- function(config) {
   drake:::console_target(target = target, config = config)
   deps <- drake:::cmq_deps_list(target = target, config = config)
   config$workers$send_call(
-    expr = drake::remote_hasty_build(
+    expr = drake.hasty::remote_hasty_build(
       target = target,
       deps = deps,
       config = config
