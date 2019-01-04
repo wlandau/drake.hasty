@@ -71,7 +71,7 @@ config <- drake_config(
 )
 ```
 
-Next, supply a funcion to build individual targets. Feel free to borrow from `default_hasty_build()`.
+Next, supply a function to build individual targets. Feel free to borrow from `default_hasty_build()`.
 
 ```{r hastybuild}
 config$hasty_build <- default_hasty_build

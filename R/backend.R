@@ -35,7 +35,6 @@ hasty_loop <- function(config) {
 #' @export
 #' @param target character, name of the target to build
 #' @param config a `drake_config()` object
-#' @inheritParams drake_build
 default_hasty_build <- function(target, config) {
   tidy_expr <- eval(
     expr = config$layout[[target]]$command_build,
@@ -103,7 +102,7 @@ hasty_send_target <- function(config) {
 #' @description For internal use only
 #' @export
 #' @keywords internal
-#' @inheritParams drake_build
+#' @inheritParams default_hasty_build
 #' @param deps named list of dependencies
 remote_hasty_build <- function(target, deps = NULL, config) {
   drake:::do_prework(config = config, verbose_packages = FALSE)

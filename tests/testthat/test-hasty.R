@@ -26,7 +26,7 @@ test_that("hasty parallelism", {
       expect_equal(length(intersect(my_plan$target, cached())), 0)
       unlink("coef.csv")
       expect_false(file.exists("coef.csv"))
-      # remote_hasty_build()
+      # remote_hasty_build() # nolint
       o <- remote_hasty_build(
         target = "small",
         deps = list(simulate = simulate),

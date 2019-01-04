@@ -67,7 +67,7 @@ config <- drake_config(
 )
 ```
 
-Next, supply a funcion to build individual targets. Feel free to borrow from `default_hasty_build()`.
+Next, supply a function to build individual targets. Feel free to borrow from `default_hasty_build()`.
 
 ``` r
 config$hasty_build <- default_hasty_build
@@ -79,7 +79,7 @@ config$hasty_build
 #>         envir = config$eval)
 #>     eval(expr = tidy_expr, envir = config$eval)
 #> }
-#> <bytecode: 0x56262b2bde50>
+#> <bytecode: 0x561f6b55bef8>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -137,10 +137,10 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6280) ...
+#> Submitting 2 worker jobs (ID: 6307) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 19.2% CPU]; Worker: [avg 6.0% CPU, max 284.8 Mb]
+#> Master: [0.2s 19.7% CPU]; Worker: [avg 6.5% CPU, max 284.8 Mb]
 #> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
