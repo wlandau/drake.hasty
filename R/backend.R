@@ -9,6 +9,10 @@
 #' # for examples.
 backend_hasty <- function(config) {
   warn_hasty(config)
+  try(
+    drake:::set_attempt_flag(key = "_attempt", config = config),
+    silent = TRUE
+  )
   config$graph <- config$schedule
   if (config$jobs > 1L) {
     hasty_parallel(config)
