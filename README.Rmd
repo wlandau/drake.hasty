@@ -4,6 +4,7 @@ output: github_document
 
 [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
 [![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty)
+[![Test coverage](https://codecov.io/github/wlandau/drake.hasty/coverage.svg?branch=master)](https://codecov.io/github/wlandau/drake.hasty?branch=master)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 

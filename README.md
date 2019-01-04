@@ -1,5 +1,5 @@
 
-[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental) [![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty)
+[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental) [![Travis build status](https://travis-ci.org/wlandau/drake.hasty.svg?branch=master)](https://travis-ci.org/wlandau/drake.hasty) [![Test coverage](https://codecov.io/github/wlandau/drake.hasty/coverage.svg?branch=master)](https://codecov.io/github/wlandau/drake.hasty?branch=master)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 Hasty mode for the drake R package
@@ -80,7 +80,7 @@ config$hasty_build
 #>         envir = config$eval)
 #>     eval(expr = tidy_expr, envir = config$eval)
 #> }
-#> <bytecode: 0x564c5a0cb9d0>
+#> <bytecode: 0x5599fbe4b8d0>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -150,10 +150,10 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6316) ...
+#> Submitting 2 worker jobs (ID: 7882) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 18.4% CPU]; Worker: [avg 7.0% CPU, max 284.7 Mb]
+#> Master: [0.2s 20.0% CPU]; Worker: [avg 6.6% CPU, max 284.7 Mb]
 #> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
