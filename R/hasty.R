@@ -1,13 +1,19 @@
-#' @title Build a target using "hasty" parallelism
-#' @description For internal use only
+#' @title Hasty mode for the drake R package
+#' @description Sacrifices reproducibility to gain speed.
+#'   Targets are never cached and never up to date.
+#'   Use at your own risk.
 #' @export
-#' @keywords internal
+#' @param config a `drake_config()` object
 #' @examples
 #' \dontrun{
 #' drake::test_with_dir("generates files", {
 #' library(drake)
 #' library(drake.hasty)
 #' load_mtcars_example()
+#' config <- drake_config(my_plan)
+#' # You can supply your own build function:
+#' config$hasty_build <- default_hasty_build
+#' config$hasty
 #' make(my_plan, parallelism = backend_hasty, jobs = 1)
 #' make(
 #' if (requireNamespace("clustermq")){
@@ -30,7 +36,7 @@ backend_hasty <- function(config) {
 hasty_loop <- function(config) {
   targets <- igraph::topo_sort(config$schedule)$name
   for (target in targets) {
-    console_target(target = target, config = config)
+    drake:::console_target(target = target, config = config)
     config$eval[[target]] <- config$hasty_build(
       target = target,
       config = config
@@ -42,7 +48,8 @@ hasty_loop <- function(config) {
 #' @title Build a target using "hasty" parallelism
 #' @description For internal use only
 #' @export
-#' @keywords internal
+#' @param target character, name of the target to build
+#' @param config a `drake_config()` object
 #' @inheritParams drake_build
 default_hasty_build <- function(target, config) {
   tidy_expr <- eval(
@@ -53,8 +60,8 @@ default_hasty_build <- function(target, config) {
 }
 
 hasty_parallel <- function(config) {
-  assert_pkg("clustermq", version = "0.8.5")
-  config$queue <- new_priority_queue(
+  drake:::assert_pkg("clustermq", version = "0.8.5")
+  config$queue <- drake:::new_priority_queue(
     config = config,
     jobs = config$jobs_preprocess
   )
@@ -63,10 +70,10 @@ hasty_parallel <- function(config) {
       n_jobs = config$jobs,
       template = config$template
     )
-    cmq_set_common_data(config)
+    drake:::cmq_set_common_data(config)
     config$counter <- new.env(parent = emptyenv())
     config$counter$remaining <- config$queue$size()
-    hasty_master(config)
+    drake:::hasty_master(config)
   }
   invisible()
 }
@@ -75,7 +82,7 @@ hasty_master <- function(config) {
   on.exit(config$workers$finalize())
   while (config$counter$remaining > 0) {
     msg <- config$workers$receive_data()
-    conclude_hasty_build(msg = msg, config = config)
+    drake:::conclude_hasty_build(msg = msg, config = config)
     if (!identical(msg$token, "set_common_data_token")) {
       config$workers$send_common_data()
     } else if (!config$queue$empty()) {
@@ -95,7 +102,7 @@ hasty_send_target <- function(config) {
     config$workers$send_wait() # nocov
     return() # nocov
   }
-  console_target(target = target, config = config)
+  drake:::console_target(target = target, config = config)
   deps <- cmq_deps_list(target = target, config = config)
   config$workers$send_call(
     expr = drake::remote_hasty_build(
@@ -114,7 +121,7 @@ hasty_send_target <- function(config) {
 #' @inheritParams drake_build
 #' @param deps named list of dependencies
 remote_hasty_build <- function(target, deps = NULL, config) {
-  do_prework(config = config, verbose_packages = FALSE)
+  drake:::do_prework(config = config, verbose_packages = FALSE)
   for (dep in names(deps)) {
     config$eval[[dep]] <- deps[[dep]]
   }
@@ -127,7 +134,7 @@ conclude_hasty_build <- function(msg, config) {
     return()
   }
   config$eval[[msg$result$target]] <- msg$result$value
-  revdeps <- dependencies(
+  revdeps <- drake:::dependencies(
     targets = msg$result$target,
     config = config,
     reverse = TRUE
@@ -152,5 +159,5 @@ warn_hasty <- function(config) {
   if (requireNamespace("crayon")) {
     msg <- crayon::red(msg)
   }
-  drake_warning(msg, config = config)
+  drake:::drake_warning(msg, config = config)
 }

@@ -13,26 +13,13 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+library(drake.hasty)
+load_mtcars_example()
 ```
 
 # Hasty mode for the drake R package
 
-Hasty mode is [`clustermq`](https://github.com/mschubert/clustermq) parallelism with all of `drake`'s storage and reproducibility guarantees stripped away. 
-
-## Install
-
-```{r installhasty, eval = FALSE}
-library(remotes)
-install_github("wlandau/drake.hasty")
-```
-
-## Use
-
-```{r introhasty, eval = FALSE}
-library(drake.hasty)
-load_mtcars_example()
-make(my_plan, parallelism = backend_hasty, jobs = 2)
-```
+Hasty mode is accelerated execution with all of `drake`'s storage and reproducibility guarantees stripped away. For experimentation only. Use at your own risk.
 
 ## Drawbacks
 
@@ -44,3 +31,63 @@ make(my_plan, parallelism = backend_hasty, jobs = 2)
 - There is no overhead from storing and checking targets, so hasty mode runs much faster than `drake`'s standard modes.
 - `drake` still builds the correct targets in the correct order, waiting for dependencies to finish before advancing downstream.
 
+## Installation
+
+```{r installhasty, eval = FALSE}
+library(remotes)
+install_github("wlandau/drake.hasty")
+```
+
+## Usage
+
+First, create a `drake_config()` object from your workflow.
+
+```{r introhasty}
+library(drake.hasty)
+load_mtcars_example()
+config <- drake_config(my_plan, parallelism = backend_hasty)
+```
+
+You can increase speed even more with some lesser-known `drake_config()` options.
+
+```{r hastyconfig}
+config <- drake_config(
+  my_plan,
+  parallelism = backend_hasty,
+  cache = storr::storr_environment(),
+  skip_imports = TRUE,
+  session_info = FALSE,
+  skip_safety_checks = TRUE
+)
+```
+
+Next, supply a funcion to build individual targets. Feel free to borrow from `default_hasty_build()`.
+
+```{r hastybuild}
+config$hasty_build <- default_hasty_build
+
+config$hasty_build
+```
+
+Finally, run the project. For the fastest execution, set `skip_imports` to `TRUE`
+
+```{r hastyrun1}
+make(config = config)
+```
+
+There is no caching or checking in hasty mode, so your targets are never up to date.
+
+```{r hastyrun2}
+make(config = config)
+```
+
+If you have `clustermq` installed, you can use parallel computing.
+
+```{r hastyrun3, eval = FALSE}
+config$jobs <- 4
+make(config = config)
+```
+
+```{r hastycleanup}
+unlink(c("report.Rmd", "report.md"))
+```
