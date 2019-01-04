@@ -27,12 +27,12 @@ Depends:
   drake
 Imports:
   igraph
-Encoding: UTF-8
-Language: en-US
-Roxygen: list(markdown = TRUE)
 Suggests:
   clustermq,
   crayon,
   testthat,
   utils
+Encoding: UTF-8
+Language: en-US
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1

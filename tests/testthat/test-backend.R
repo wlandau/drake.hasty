@@ -1,4 +1,4 @@
-context("hasty")
+context("backend")
 
 test_that("hasty parallelism", {
   dir <- tempfile()
