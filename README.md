@@ -11,7 +11,7 @@ Drawbacks
 ---------
 
 1.  **DRAKE NO LONGER PROVIDES EVIDENCE THAT YOUR WORKFLOW IS TRUSTWORTHY OR REPRODUCIBLE. [THE CORE SCIENTIFIC CLAIMS](https://github.com/ropensci/drake#reproducibility-with-confidence) ARE NO LONGER VALID.**
-2.  There is no cache, so
+2.  By default, the cache is not used, so
     1.  You need to write code to store your own targets (in your targets' commands or `config$hasty_build()`), and
     2.  `knitr`/`rmarkdown` reports with calls to `loadd()`/`readd()` will no longer work properly as pieces of the pipeline.
 
@@ -31,8 +31,8 @@ install_github("ropensci/drake")
 install_github("wlandau/drake.hasty")
 ```
 
-Usage
------
+Basic usage
+-----------
 
 We begin with a `drake` project.
 
@@ -49,42 +49,13 @@ plan
 #> 3 z      median(x)
 ```
 
-Create a `drake_config()` object from your workflow.
+First, create a `drake_config()` object from your workflow. Supply the `backend_hasty()` function to the `parallelism` argument.
 
 ``` r
 config <- drake_config(plan, parallelism = backend_hasty)
 ```
 
-You can increase speed even more with some lesser-known `drake_config()` options.
-
-``` r
-config <- drake_config(
-  plan,
-  parallelism = backend_hasty,
-  cache = storr::storr_environment(),
-  skip_imports = TRUE,
-  session_info = FALSE,
-  skip_safety_checks = TRUE
-)
-```
-
-Next, supply a function to build individual targets. Feel free to borrow from `default_hasty_build()`.
-
-``` r
-config$hasty_build <- default_hasty_build
-
-config$hasty_build
-#> function (target, config) 
-#> {
-#>     tidy_expr <- eval(expr = config$layout[[target]]$command_build, 
-#>         envir = config$eval)
-#>     eval(expr = tidy_expr, envir = config$eval)
-#> }
-#> <bytecode: 0x55d6b66b9800>
-#> <environment: namespace:drake.hasty>
-```
-
-Finally, run the project. For the fastest execution, set `skip_imports` to `TRUE`
+Then run the project.
 
 ``` r
 make(config = config)
@@ -103,10 +74,9 @@ make(config = config)
 #> target x
 #> target y
 #> target z
-#> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
 
-There is no caching or checking in hasty mode, so your targets are never up to date.
+By default, there is no caching or checking in hasty mode, so your targets are never up to date.
 
 ``` r
 make(config = config)
@@ -125,10 +95,12 @@ make(config = config)
 #> target x
 #> target y
 #> target z
-#> Skipped the imports. If some imports are not already cached, targets could be out of date.
 ```
 
-If you have `clustermq` installed, you can use parallel computing.
+Parallel and distributed computing
+----------------------------------
+
+If you have the [`clustermq`](https://github.com/mschubert/clustermq) package installed, you can use parallel and distributed computing.
 
 ``` r
 # Use 2 persistent workers.
@@ -150,10 +122,75 @@ make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 7021) ...
+#> Submitting 2 worker jobs (ID: 6637) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 20.3% CPU]; Worker: [avg 6.6% CPU, max 284.7 Mb]
-#> Skipped the imports. If some imports are not already cached, targets could be out of date.
+#> Master: [0.1s 33.7% CPU]; Worker: [avg 17.0% CPU, max 284.2 Mb]
 ```
+
+Custom build functions
+----------------------
+
+You can customize how each target gets built. By default, `hasty_build_default()` is used.
+
+``` r
+hasty_build_default
+#> function (target, config) 
+#> {
+#>     tidy_expr <- eval(expr = config$layout[[target]]$command_build, 
+#>         envir = config$eval)
+#>     eval(expr = tidy_expr, envir = config$eval)
+#> }
+#> <bytecode: 0x560110e621c0>
+#> <environment: namespace:drake.hasty>
+```
+
+But there is another built-in function that also stores the targets to `drake`'s cache.
+
+``` r
+hasty_build_store
+#> function (target, config) 
+#> {
+#>     tidy_expr <- eval(expr = config$layout[[target]]$command_build, 
+#>         envir = config$eval)
+#>     value <- eval(expr = tidy_expr, envir = config$eval)
+#>     config$cache$set(key = target, value = value)
+#>     value
+#> }
+#> <bytecode: 0x56010fd80608>
+#> <environment: namespace:drake.hasty>
+```
+
+To use it, simply add it to the `config` object and run `make()`.
+
+``` r
+config$hasty_build <- hasty_build_store
+make(config = config)
+#> Warning: `drake` can indeed accept a custom scheduler function for the
+#> `parallelism` argument of `make()` but this is only for the sake of
+#> experimentation and graceful deprecation. Your own custom schedulers may
+#> cause surprising errors. Use at your own risk.
+#> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
+#> drake's scientific claims at
+#>   https://ropensci.github.io/drake/#reproducibility-with-confidence
+#>   are NOT VALID IN HASTY MODE!
+#> Targets could be out of date even after make(),
+#>   and you have no way of knowing.
+#> USE AT YOUR OWN RISK!
+#> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
+#> Submitting 2 worker jobs (ID: 6165) ...
+#> target x
+#> target y
+#> target z
+#> Master: [0.2s 11.4% CPU]; Worker: [avg 9.3% CPU, max 284.2 Mb]
+```
+
+Now you can read targets from the cache.
+
+``` r
+readd(z)
+#> [1] 0.1276097
+```
+
+Similarly, you can write your own custom build functions for `config$hasty_build`.

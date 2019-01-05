@@ -7,11 +7,7 @@
 remote_hasty_build(target, deps = NULL, config)
 }
 \arguments{
-\item{target}{character, name of the target to build}
-
 \item{deps}{named list of dependencies}
-
-\item{config}{a \code{drake_config()} object}
 }
 \description{
 For internal use only

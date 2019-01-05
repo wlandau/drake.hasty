@@ -25,7 +25,7 @@ Hasty mode is accelerated execution with all of `drake`'s storage and reproducib
 ## Drawbacks
 
 1. **DRAKE NO LONGER PROVIDES EVIDENCE THAT YOUR WORKFLOW IS TRUSTWORTHY OR REPRODUCIBLE. [THE CORE SCIENTIFIC CLAIMS](https://github.com/ropensci/drake#reproducibility-with-confidence) ARE NO LONGER VALID.**
-2. There is no cache, so 
+2. By default, the cache is not used, so 
     1. You need to write code to store your own targets (in your targets' commands or `config$hasty_build()`), and
     2. `knitr`/`rmarkdown` reports with calls to `loadd()`/`readd()` will no longer work properly as pieces of the pipeline.
 
@@ -43,7 +43,7 @@ install_github("ropensci/drake")
 install_github("wlandau/drake.hasty")
 ```
 
-## Usage
+## Basic usage
 
 We begin with a `drake` project.
 
@@ -54,46 +54,27 @@ plan <- drake_plan(x = rnorm(100), y = mean(x), z = median(x))
 plan
 ```
 
-Create a `drake_config()` object from your workflow.
+First, create a `drake_config()` object from your workflow. Supply the `backend_hasty()` function to the `parallelism` argument.
 
-```{r introhasty, eval = FALSE}
+```{r introhasty}
 config <- drake_config(plan, parallelism = backend_hasty)
 ```
 
-You can increase speed even more with some lesser-known `drake_config()` options.
-
-```{r hastyconfig}
-config <- drake_config(
-  plan,
-  parallelism = backend_hasty,
-  cache = storr::storr_environment(),
-  skip_imports = TRUE,
-  session_info = FALSE,
-  skip_safety_checks = TRUE
-)
-```
-
-Next, supply a function to build individual targets. Feel free to borrow from `default_hasty_build()`.
-
-```{r hastybuild}
-config$hasty_build <- default_hasty_build
-
-config$hasty_build
-```
-
-Finally, run the project. For the fastest execution, set `skip_imports` to `TRUE`
+Then run the project.
 
 ```{r hastyrun1}
 make(config = config)
 ```
 
-There is no caching or checking in hasty mode, so your targets are never up to date.
+By default, there is no caching or checking in hasty mode, so your targets are never up to date.
 
 ```{r hastyrun2}
 make(config = config)
 ```
 
-If you have `clustermq` installed, you can use parallel computing.
+## Parallel and distributed computing
+
+If you have the [`clustermq`](https://github.com/mschubert/clustermq) package installed, you can use parallel and distributed computing.
 
 ```{r hastyrun3}
 # Use 2 persistent workers.
@@ -103,4 +84,37 @@ config$jobs <- 2
 options(clustermq.scheduler = "multicore")
 
 make(config = config)
+```
+
+## Custom build functions
+
+You can customize how each target gets built. By default, `hasty_build_default()` is used.
+
+```{r hastybuilddefault}
+hasty_build_default
+```
+
+But there is another built-in function that also stores the targets to `drake`'s cache.
+
+```{r hastybuildstore}
+hasty_build_store
+```
+
+To use it, simply add it to the `config` object and run `make()`.
+
+```{r usehastybuild}
+config$hasty_build <- hasty_build_store
+make(config = config)
+```
+
+Now you can read targets from the cache.
+
+```{r hastyread}
+readd(z)
+```
+
+Similarly, you can write your own custom build functions for `config$hasty_build`.
+
+```{r hastycleanup, echo = FALSE}
+clean(destroy = TRUE)
 ```

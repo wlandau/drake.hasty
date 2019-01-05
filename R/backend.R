@@ -9,11 +9,9 @@
 #' # for examples.
 backend_hasty <- function(config) {
   warn_hasty(config)
-  try(
-    drake:::set_attempt_flag(key = "_attempt", config = config),
-    silent = TRUE
-  )
-  config$graph <- config$schedule
+  if (is.null(config$hasty_build)) {
+    config$hasty_build <- hasty_build_default
+  }
   if (config$jobs > 1L) {
     hasty_parallel(config)
   } else{
@@ -32,19 +30,6 @@ hasty_loop <- function(config) {
     )
   }
   invisible()
-}
-
-#' @title Build a target using "hasty" parallelism
-#' @description For internal use only
-#' @export
-#' @param target character, name of the target to build
-#' @param config a `drake_config()` object
-default_hasty_build <- function(target, config) {
-  tidy_expr <- eval(
-    expr = config$layout[[target]]$command_build,
-    envir = config$eval
-  )
-  eval(expr = tidy_expr, envir = config$eval)
 }
 
 hasty_parallel <- function(config) {
