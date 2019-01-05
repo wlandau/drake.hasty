@@ -122,9 +122,9 @@ conclude_hasty_build <- function(msg, config) {
     return()
   }
   config$eval[[msg$result$target]] <- msg$result$value
-  revdeps <- drake:::dependencies(
+  revdeps <- drake:::deps_graph(
     targets = msg$result$target,
-    config = config,
+    graph = config$schedule,
     reverse = TRUE
   )
   revdeps <- intersect(revdeps, config$queue$list())
