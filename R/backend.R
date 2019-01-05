@@ -126,7 +126,7 @@ warn_hasty <- function(config) {
     "Targets could be out of date even after make(),",
     "  and you have no way of knowing.",
     "USE AT YOUR OWN RISK!",
-    "Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode", # nolint
+    "Details: https://github.com/wlandau/drake.hasty/blob/master/README.md", # nolint
     sep = "\n"
   )
   if (requireNamespace("crayon")) {
