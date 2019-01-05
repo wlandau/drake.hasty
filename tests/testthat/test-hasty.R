@@ -1,4 +1,4 @@
-context("backend")
+context("hasty mode")
 
 test_that("default build function", {
   dir <- tempfile()
@@ -6,9 +6,9 @@ test_that("default build function", {
   withr::with_dir(dir, {
     load_mtcars_example()
     my_plan$command[my_plan$target == "report"] <-
-      "utils::write.csv(coef_regression2_large, file = file_out(\"coef.csv\"))"
+      "saveRDS(coef_regression2_large, file = file_out(\"coef.rds\"))"
     options(clustermq.scheduler = "multicore")
-    config <- drake_config(my_plan, parallelism = backend_hasty)
+    config <- drake_config(my_plan)
     for (jobs in 1:2) {
       if (jobs > 1) {
         skip_on_os("windows")
@@ -18,12 +18,15 @@ test_that("default build function", {
         }
       }
       config$jobs <- jobs
-      expect_false(file.exists("coef.csv"))
-      expect_warning(make(config = config), regexp = "USE AT YOUR OWN RISK")
-      expect_true(file.exists("coef.csv"))
+      expect_false(file.exists("coef.rds"))
+      expect_warning(
+        hasty_make(config = config),
+        regexp = "USE AT YOUR OWN RISK"
+      )
+      expect_true(file.exists("coef.rds"))
       expect_equal(length(intersect(my_plan$target, cached())), 0)
-      unlink("coef.csv")
-      expect_false(file.exists("coef.csv"))
+      unlink("coef.rds")
+      expect_false(file.exists("coef.rds"))
     }
     if ("package:clustermq" %in% search()) {
       detach("package:clustermq", unload = TRUE) # nolint
@@ -36,11 +39,9 @@ test_that("hasty_build_store()", {
   dir.create(dir)
   withr::with_dir(dir, {
     load_mtcars_example()
-    my_plan$command[my_plan$target == "report"] <-
-      "utils::write.csv(coef_regression2_large, file = file_out(\"coef.csv\"))"
     options(clustermq.scheduler = "multicore")
     for (jobs in 1:2) {
-      config <- drake_config(my_plan, parallelism = backend_hasty)
+      config <- drake_config(my_plan)
       config$hasty_build <- hasty_build_store
       if (jobs > 1) {
         skip_on_os("windows")
@@ -50,7 +51,10 @@ test_that("hasty_build_store()", {
         }
       }
       config$jobs <- jobs
-      expect_warning(make(config = config), regexp = "USE AT YOUR OWN RISK")
+      expect_warning(
+        hasty_make(config = config),
+        regexp = "USE AT YOUR OWN RISK"
+      )
       expect_true(is.data.frame(config$cache$get("small")))
       expect_true(config$cache$exists("report"))
       clean(destroy = TRUE)
@@ -69,9 +73,9 @@ test_that("custom build function", {
   withr::with_dir(dir, {
     load_mtcars_example()
     my_plan$command[my_plan$target == "report"] <-
-      "utils::write.csv(coef_regression2_large, file = file_out(\"coef.csv\"))"
+      "saveRDS(coef_regression2_large, file = file_out(\"coef.rds\"))"
     options(clustermq.scheduler = "multicore")
-    config <- drake_config(my_plan, parallelism = backend_hasty)
+    config <- drake_config(my_plan)
     config$hasty_build <- function(target, config) {
       file.create(target)
     }
@@ -85,14 +89,14 @@ test_that("custom build function", {
       }
       config$jobs <- jobs
       expect_warning(
-        make(config = config),
+        hasty_make(config = config),
         regexp = "USE AT YOUR OWN RISK"
       )
       expect_true(file.exists("small"))
       unlink("small")
       expect_false(file.exists("small"))
       expect_equal(length(intersect(my_plan$target, cached())), 0)
-      expect_false(file.exists("coef.csv"))
+      expect_false(file.exists("coef.rds"))
     }
     if ("package:clustermq" %in% search()) {
       detach("package:clustermq", unload = TRUE) # nolint
@@ -105,7 +109,8 @@ test_that("remote_hasty_build()", {
   dir.create(dir)
   withr::with_dir(dir, {
     load_mtcars_example()
-    config <- drake_config(my_plan, parallelism = backend_hasty)
+    config <- drake_config(my_plan)
+    config <- prepare_config(config)
     config$hasty_build <- hasty_build_default
     o <- remote_hasty_build(
       target = "small",
@@ -114,4 +119,54 @@ test_that("remote_hasty_build()", {
     )
     expect_true(is.data.frame(o$value))
   })
+})
+
+test_that("With a minimal config object", {
+  dir <- tempfile()
+  dir.create(dir)
+  withr::with_dir(dir, {
+    load_mtcars_example()
+    my_plan$command[my_plan$target == "report"] <-
+      "saveRDS(coef_regression2_large, file = file_out(\"coef.rds\"))"
+    options(clustermq.scheduler = "multicore")
+    for (jobs in 1:3) {
+      x <- drake_config(my_plan)
+      config <- list(
+        plan = x$plan,
+        schedule = x$schedule,
+        envir = x$envir,
+        jobs = jobs
+      )
+      if (jobs > 1) {
+        skip_on_os("windows")
+        skip_if_not_installed("clustermq")
+        if ("package:clustermq" %in% search()) {
+          detach("package:clustermq", unload = TRUE) # nolint
+        }
+      }
+      if (config$jobs > 2) {
+        config$jobs <- NULL
+      }
+      expect_false(file.exists("coef.rds"))
+      expect_warning(
+        hasty_make(config = config),
+        regexp = "USE AT YOUR OWN RISK"
+      )
+      expect_true(file.exists("coef.rds"))
+      expect_equal(length(intersect(my_plan$target, cached())), 0)
+      unlink("coef.rds")
+      expect_false(file.exists("coef.rds"))
+    }
+    if ("package:clustermq" %in% search()) {
+      detach("package:clustermq", unload = TRUE) # nolint
+    }
+  })
+})
+
+test_with_dir("required args to hasty_make()", {
+  config <- list()
+  for (x in c("plan", "schedule", "envir")) {
+    suppressWarnings(expect_error(hasty_make(config), regexp = x))
+    config[[x]] <- 1
+  }
 })

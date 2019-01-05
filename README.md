@@ -49,20 +49,26 @@ plan
 #> 3 z      median(x)
 ```
 
-First, create a `drake_config()` object from your workflow. Supply the `backend_hasty()` function to the `parallelism` argument.
+First, create a `drake_config()` object from your workflow.
 
 ``` r
-config <- drake_config(plan, parallelism = backend_hasty)
+config <- drake_config(plan)
+```
+
+You really only need the `plan`, `schedule`, and `envir` slots of `config`. Feel free to create them yourself.
+
+``` r
+config <- list(
+  plan = config$plan,
+  schedule = config$schedule,
+  envir = config$envir
+)
 ```
 
 Then run the project.
 
 ``` r
-make(config = config)
-#> Warning: `drake` can indeed accept a custom scheduler function for the
-#> `parallelism` argument of `make()` but this is only for the sake of
-#> experimentation and graceful deprecation. Your own custom schedulers may
-#> cause surprising errors. Use at your own risk.
+hasty_make(config = config)
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -70,7 +76,7 @@ make(config = config)
 #> Targets could be out of date even after make(),
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
-#> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
+#> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
 #> target x
 #> target y
 #> target z
@@ -79,11 +85,7 @@ make(config = config)
 By default, there is no caching or checking in hasty mode, so your targets are never up to date.
 
 ``` r
-make(config = config)
-#> Warning: `drake` can indeed accept a custom scheduler function for the
-#> `parallelism` argument of `make()` but this is only for the sake of
-#> experimentation and graceful deprecation. Your own custom schedulers may
-#> cause surprising errors. Use at your own risk.
+hasty_make(config = config)
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -91,7 +93,7 @@ make(config = config)
 #> Targets could be out of date even after make(),
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
-#> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
+#> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
 #> target x
 #> target y
 #> target z
@@ -109,11 +111,7 @@ config$jobs <- 2
 # See https://github.com/mschubert/clustermq for more options.
 options(clustermq.scheduler = "multicore")
 
-make(config = config)
-#> Warning: `drake` can indeed accept a custom scheduler function for the
-#> `parallelism` argument of `make()` but this is only for the sake of
-#> experimentation and graceful deprecation. Your own custom schedulers may
-#> cause surprising errors. Use at your own risk.
+hasty_make(config = config)
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -121,12 +119,12 @@ make(config = config)
 #> Targets could be out of date even after make(),
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
-#> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6637) ...
+#> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
+#> Submitting 2 worker jobs (ID: 6745) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.1s 33.7% CPU]; Worker: [avg 17.0% CPU, max 284.2 Mb]
+#> Master: [0.1s 44.2% CPU]; Worker: [avg 9.9% CPU, max 278.0 Mb]
 ```
 
 Custom build functions
@@ -138,11 +136,9 @@ You can customize how each target gets built. By default, `hasty_build_default()
 hasty_build_default
 #> function (target, config) 
 #> {
-#>     tidy_expr <- eval(expr = config$layout[[target]]$command_build, 
-#>         envir = config$eval)
-#>     eval(expr = tidy_expr, envir = config$eval)
+#>     eval(expr = config$commands[[target]], envir = config$eval)
 #> }
-#> <bytecode: 0x560110e621c0>
+#> <bytecode: 0x55e852c9c2a8>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -152,25 +148,20 @@ But there is another built-in function that also stores the targets to `drake`'s
 hasty_build_store
 #> function (target, config) 
 #> {
-#>     tidy_expr <- eval(expr = config$layout[[target]]$command_build, 
-#>         envir = config$eval)
-#>     value <- eval(expr = tidy_expr, envir = config$eval)
+#>     value <- eval(expr = config$commands[[target]], envir = config$eval)
 #>     config$cache$set(key = target, value = value)
 #>     value
 #> }
-#> <bytecode: 0x56010fd80608>
+#> <bytecode: 0x55e853913480>
 #> <environment: namespace:drake.hasty>
 ```
 
-To use it, simply add it to the `config` object and run `make()`.
+To use it, simply add the build function and a [`storr`](https://github.com/richfitz/storr) cache to `config` and run `hasty_make()`.
 
 ``` r
 config$hasty_build <- hasty_build_store
-make(config = config)
-#> Warning: `drake` can indeed accept a custom scheduler function for the
-#> `parallelism` argument of `make()` but this is only for the sake of
-#> experimentation and graceful deprecation. Your own custom schedulers may
-#> cause surprising errors. Use at your own risk.
+config$cache <- storr::storr_rds(tempfile())
+hasty_make(config = config)
 #> Warning: Hasty mode THROWS AWAY REPRODUCIBILITY to gain speed.
 #> drake's scientific claims at
 #>   https://ropensci.github.io/drake/#reproducibility-with-confidence
@@ -178,19 +169,19 @@ make(config = config)
 #> Targets could be out of date even after make(),
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
-#> Details: https://ropenscilabs.github.io/drake-manual/hpc.html#hasty-mode
-#> Submitting 2 worker jobs (ID: 6165) ...
+#> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
+#> Submitting 2 worker jobs (ID: 6250) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 11.4% CPU]; Worker: [avg 9.3% CPU, max 284.2 Mb]
+#> Master: [0.2s 14.1% CPU]; Worker: [avg 7.6% CPU, max 282.3 Mb]
 ```
 
 Now you can read targets from the cache.
 
 ``` r
-readd(z)
-#> [1] 0.1276097
+readd(z, cache = config$cache)
+#> [1] -0.2252586
 ```
 
 Similarly, you can write your own custom build functions for `config$hasty_build`.

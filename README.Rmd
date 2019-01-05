@@ -54,22 +54,32 @@ plan <- drake_plan(x = rnorm(100), y = mean(x), z = median(x))
 plan
 ```
 
-First, create a `drake_config()` object from your workflow. Supply the `backend_hasty()` function to the `parallelism` argument.
+First, create a `drake_config()` object from your workflow.
 
 ```{r introhasty}
-config <- drake_config(plan, parallelism = backend_hasty)
+config <- drake_config(plan)
+```
+
+You really only need the `plan`, `schedule`, and `envir` slots of `config`. Feel free to create them yourself.
+
+```{r minimalconfig}
+config <- list(
+  plan = config$plan,
+  schedule = config$schedule,
+  envir = config$envir
+)
 ```
 
 Then run the project.
 
 ```{r hastyrun1}
-make(config = config)
+hasty_make(config = config)
 ```
 
 By default, there is no caching or checking in hasty mode, so your targets are never up to date.
 
 ```{r hastyrun2}
-make(config = config)
+hasty_make(config = config)
 ```
 
 ## Parallel and distributed computing
@@ -83,7 +93,7 @@ config$jobs <- 2
 # See https://github.com/mschubert/clustermq for more options.
 options(clustermq.scheduler = "multicore")
 
-make(config = config)
+hasty_make(config = config)
 ```
 
 ## Custom build functions
@@ -100,21 +110,22 @@ But there is another built-in function that also stores the targets to `drake`'s
 hasty_build_store
 ```
 
-To use it, simply add it to the `config` object and run `make()`.
+To use it, simply add the build function and a [`storr`](https://github.com/richfitz/storr) cache to `config` and run `hasty_make()`.
 
 ```{r usehastybuild}
 config$hasty_build <- hasty_build_store
-make(config = config)
+config$cache <- storr::storr_rds(tempfile())
+hasty_make(config = config)
 ```
 
 Now you can read targets from the cache.
 
 ```{r hastyread}
-readd(z)
+readd(z, cache = config$cache)
 ```
 
 Similarly, you can write your own custom build functions for `config$hasty_build`.
 
 ```{r hastycleanup, echo = FALSE}
-clean(destroy = TRUE)
+drake::clean(destroy = TRUE)
 ```

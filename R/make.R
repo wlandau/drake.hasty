@@ -7,11 +7,9 @@
 #' @examples
 #' # See <https://github.com/wlandau/drake.hasty/blob/master/README.md>
 #' # for examples.
-backend_hasty <- function(config) {
+hasty_make <- function(config) {
   warn_hasty(config)
-  if (is.null(config$hasty_build)) {
-    config$hasty_build <- hasty_build_default
-  }
+  config <- prepare_config(config)
   if (config$jobs > 1L) {
     hasty_parallel(config)
   } else{
@@ -76,7 +74,7 @@ hasty_send_target <- function(config) {
     return() # nocov
   }
   drake:::console_target(target = target, config = config)
-  deps <- drake:::cmq_deps_list(target = target, config = config)
+  deps <- hasty_deps_list(target = target, config = config)
   config$workers$send_call(
     expr = drake.hasty::remote_hasty_build(
       target = target,
@@ -87,11 +85,23 @@ hasty_send_target <- function(config) {
   )
 }
 
+hasty_deps_list <- function(target, config) {
+  deps <- drake:::deps_graph(target, config$schedule)
+  out <- lapply(
+    X = deps,
+    FUN = function(name) {
+      config$eval[[name]]
+    }
+  )
+  names(out) <- deps
+  out
+}
+
 #' @title Build a target on a remote worker using "hasty" parallelism
 #' @description For internal use only
 #' @export
 #' @keywords internal
-#' @inheritParams default_hasty_build
+#' @inheritParams hasty_build_default
 #' @param deps named list of dependencies
 remote_hasty_build <- function(target, deps = NULL, config) {
   drake:::do_prework(config = config, verbose_packages = FALSE)
@@ -132,5 +142,5 @@ warn_hasty <- function(config) {
   if (requireNamespace("crayon")) {
     msg <- crayon::red(msg)
   }
-  drake:::drake_warning(msg, config = config)
+ warning(msg, call. = FALSE)
 }
