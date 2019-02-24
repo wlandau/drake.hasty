@@ -5,8 +5,8 @@ test_that("default build function", {
   dir.create(dir)
   withr::with_dir(dir, {
     load_mtcars_example()
-    my_plan$command[my_plan$target == "report"] <-
-      "saveRDS(coef_regression2_large, file = file_out(\"coef.rds\"))"
+    my_plan$command[my_plan$target == "report"][[1]] <-
+      quote(saveRDS(coef_regression2_large, file = file_out("coef.rds")))
     options(clustermq.scheduler = "multicore")
     config <- drake_config(my_plan)
     for (jobs in 1:2) {
@@ -126,8 +126,8 @@ test_that("With a minimal config object", {
   dir.create(dir)
   withr::with_dir(dir, {
     load_mtcars_example()
-    my_plan$command[my_plan$target == "report"] <-
-      "saveRDS(coef_regression2_large, file = file_out(\"coef.rds\"))"
+    my_plan$command[my_plan$target == "report"][[1]] <-
+      quote(saveRDS(coef_regression2_large, file = file_out("coef.rds")))
     options(clustermq.scheduler = "multicore")
     for (jobs in 1:3) {
       x <- drake_config(my_plan)
@@ -169,4 +169,11 @@ test_with_dir("required args to hasty_make()", {
     suppressWarnings(expect_error(hasty_make(config), regexp = x))
     config[[x]] <- 1
   }
+})
+
+test_with_dir("character commands", {
+  plan <- data.frame(target = "x", command = "1", stringsAsFactors = FALSE)
+  config <- drake_config(plan)
+  config$plan <- plan
+  expect_warning(hasty_make(config), regexp = "RISK")
 })

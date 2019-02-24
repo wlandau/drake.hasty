@@ -43,7 +43,7 @@ plan <- drake_plan(x = rnorm(100), y = mean(x), z = median(x))
 plan
 #> # A tibble: 3 x 2
 #>   target command   
-#>   <chr>  <chr>     
+#>   <chr>  <expr>    
 #> 1 x      rnorm(100)
 #> 2 y      mean(x)   
 #> 3 z      median(x)
@@ -120,11 +120,11 @@ hasty_make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
-#> Submitting 2 worker jobs (ID: 6745) ...
+#> Submitting 2 worker jobs (ID: 7941) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.1s 44.2% CPU]; Worker: [avg 9.9% CPU, max 278.0 Mb]
+#> Master: [0.1s 44.8% CPU]; Worker: [avg 7.1% CPU, max 279.2 Mb]
 ```
 
 Custom build functions
@@ -138,7 +138,7 @@ hasty_build_default
 #> {
 #>     eval(expr = config$commands[[target]], envir = config$eval)
 #> }
-#> <bytecode: 0x55e852c9c2a8>
+#> <bytecode: 0x55c86e5b6c10>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -152,7 +152,7 @@ hasty_build_store
 #>     config$cache$set(key = target, value = value)
 #>     value
 #> }
-#> <bytecode: 0x55e853913480>
+#> <bytecode: 0x55c86e5a25e0>
 #> <environment: namespace:drake.hasty>
 ```
 
@@ -170,18 +170,18 @@ hasty_make(config = config)
 #>   and you have no way of knowing.
 #> USE AT YOUR OWN RISK!
 #> Details: https://github.com/wlandau/drake.hasty/blob/master/README.md
-#> Submitting 2 worker jobs (ID: 6250) ...
+#> Submitting 2 worker jobs (ID: 7680) ...
 #> target x
 #> target y
 #> target z
-#> Master: [0.2s 14.1% CPU]; Worker: [avg 7.6% CPU, max 282.3 Mb]
+#> Master: [0.2s 11.9% CPU]; Worker: [avg 8.3% CPU, max 282.7 Mb]
 ```
 
 Now you can read targets from the cache.
 
 ``` r
 readd(z, cache = config$cache)
-#> [1] -0.2252586
+#> [1] 0.1680487
 ```
 
 Similarly, you can write your own custom build functions for `config$hasty_build`.

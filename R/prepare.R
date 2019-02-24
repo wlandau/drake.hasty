@@ -23,11 +23,8 @@ prepare_config <- function(config) {
   if (is.null(config$verbose)) {
     config$verbose <- 1L
   }
-  if (is.null(config$prework)) {
-    config$prework <- drake:::add_packages_to_prework(
-      rev(.packages()),
-      NULL
-    )
+  if (is.null(config$packages)) {
+    config$packages <- rev(.packages())
   }
   config$skip_imports <- TRUE
   config$skip_safety_checks <- TRUE
